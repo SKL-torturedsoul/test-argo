@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitoring
+  labels:
+    app: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monitoring
+  template:
+    metadata:
+      labels:
+        app: monitoring
+    spec:
+      containers:
+      - name: monitoring
+        image: sklewer/monitoring:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitoring-svc
+spec:
+  selector:
+    app: monitoring
+  ports:
+    - name: service
+      protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: monitoring-ingress
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: mon.lab.me
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: monitoring-svc
+            port:
+              number: 80
